@@ -1,6 +1,6 @@
 # gatsby-source-yotpo-shopify
 
-This plugin allows you to access your Yotpo reviews and ratings through Gatsby's GraphQL queries.
+This source plugin allows you to access your Yotpo reviews and ratings through Gatsby's GraphQL queries. It uses your shopify to get all products in a store that need reviews. It then uses the individual product review enpoint from Yotpo. This is required instead of using the getAllProducts endpoint since if you set reviews as both Site and Product Reviews in yotpo they wont be duplicated and you will lose reviews that are product reviews since they will be Site Reviews.
 
 ## Usage
 
@@ -10,21 +10,23 @@ yarn add gatsby-source-yotpo-shopify
 
 Add the plugin to your `gatsby-config.js`
 
-Add the credentials from [your store settings in Yotpo](https://yap.yotpo.com/#/header/account_settings/store_settings) and the [Shopify Storefront API][shopify-storefront-api].
+Add the credentials from [your store settings in Yotpo](https://yap.yotpo.com/#/header/account_settings/store_settings) and the [Shopify Storefront API](https://shopify.dev/docs/storefront-api/getting-started).
 The storefront token should have the following permissions:
 
 - Read products, variants, and collections
 
+```
   plugins: [
-  {
-  resolve: 'gatsby-source-yotpo-shopify',
-  options: {
-  shopName: SHOPIFY_STORE_NAME,
-  shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
-  yotpoAppKey: YOTPO_APP_KEY,
-  },
-  },
+    {
+      resolve: 'gatsby-source-yotpo-shopify',
+      options: {
+      shopName: SHOPIFY_STORE_NAME,
+      shopifyAccessToken: SHOPIFY_ACCESS_TOKEN,
+      yotpoAppKey: YOTPO_APP_KEY,
+      },
+    },
   ]
+```
 
 ## Querying for Data
 
