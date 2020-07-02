@@ -1,0 +1,22 @@
+{
+  "name": "gatsby-source-yotpo-shopify",
+  "version": "1.0.0",
+  "description": "Source plugin for yotpo with shopify products",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No build script setup\""
+  },
+  "keywords": [
+    "gatsby",
+    "gatsby-plugin"
+  ],
+  "author": "Pattern Brands <tech@patternbrands.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "chalk": "^4.1.0",
+    "gatsby-node-helpers": "^0.3.0",
+    "graphql-request": "^2.0.0"
+  }
+}
