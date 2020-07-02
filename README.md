@@ -53,7 +53,7 @@ In your page queries, you can query for data like so:
         product_link
         image_url
       }
-      reviews: {
+      reviews {
         id
         score
         votes_up
