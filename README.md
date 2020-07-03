@@ -34,7 +34,7 @@ In your page queries, you can query for data like so:
 
 ```graphql
 {
-  reviews: allYotpoReviews {
+  allYotpoProduct {
     nodes {
       id
       pagination
