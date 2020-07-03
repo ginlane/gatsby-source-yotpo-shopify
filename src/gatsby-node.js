@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import camelCaseRecursive from "camelcase-keys-recursive";
 import { createShopifyClient, createYotpoClient } from "./create-client";
 import { getReviews, getShopifyProducts } from "./fetch";
 import { formatMsg, decodeShopifyId } from "./utils";
@@ -45,19 +46,20 @@ export const sourceNodes = async (
     });
     console.timeEnd(formatMsg("finished fetching yotpo reviews"));
 
-    const type = "Yotpo_Reviews";
+    const type = "YotpoProduct";
 
     await Promise.all(
       reviews.map(async review => {
+        const camelCaseReview = camelCaseRecursive(review);
         await createNode({
-          ...review,
-          id: createNodeId(`${type}-${review.product_id}`),
+          ...camelCaseReview,
+          id: createNodeId(`${type}-${camelCaseReview.productId}`),
           parent: null,
           children: [],
           internal: {
             type: type,
-            content: JSON.stringify(review),
-            contentDigest: createContentDigest(review)
+            content: JSON.stringify(camelCaseReview),
+            contentDigest: createContentDigest(camelCaseReview)
           }
         });
       })

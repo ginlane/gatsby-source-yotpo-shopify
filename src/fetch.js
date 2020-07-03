@@ -12,7 +12,7 @@ export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
           }
         }
       );
-      return { ...review.data.response, ...{ product_id: id } };
+      return { ...review.data.response, ...{ productId: id } };
     })
   );
   return reviews;

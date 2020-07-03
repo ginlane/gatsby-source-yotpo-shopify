@@ -1,11 +1,10 @@
 {
   "name": "gatsby-source-yotpo-shopify",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Source plugin for yotpo with shopify products",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo \"No build script setup\""
+    "build": "babel src --out-dir ."
   },
   "keywords": [
     "gatsby",
@@ -15,7 +14,21 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
+    "camelcase-keys-recursive": "^0.8.3",
     "chalk": "^4.1.0",
     "graphql-request": "^2.0.0"
-  }
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.3",
+    "@babel/core": "^7.10.3",
+    "babel-preset-gatsby-package": "^0.5.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ginlane/gatsby-source-yotpo-shopify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ginlane/gatsby-source-yotpo-shopify/issues"
+  },
+  "homepage": "https://github.com/ginlane/gatsby-source-yotpo-shopify#readme"
 }
