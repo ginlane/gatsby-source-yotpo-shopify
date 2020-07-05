@@ -1,6 +1,6 @@
 # gatsby-source-yotpo-shopify
 
-This source plugin allows you to access your Yotpo reviews and ratings through Gatsby's GraphQL queries. It first connects to a shopify storefront API to get all products. It then uses the individual [product review endpoint](https://apidocs.yotpo.com/reference#retrieve-reviews-for-a-specific-product) to query for each review. It then gets added as a `YotpoProduct` Node in gatsby.
+This source plugin allows you to access your Yotpo reviews and ratings through Gatsby's GraphQL queries. It first connects to a shopify storefront API to get all products. It then uses the individual [product review endpoint](https://apidocs.yotpo.com/reference#retrieve-reviews-for-a-specific-product) to query for each review. Finally the `YotpoProduct` Node gets added so it can be queried in gatsby.
 
 This source plugin caters for a specific use case where reviews are set as both `Product` and `Site` inside the yotpo admin. If you use the [all reviews endpoint](https://apidocs.yotpo.com/reference#retrieve-all-reviews) the sku is randomly selected to be either a product sku or `site_review`. This means you can't query for all reviews, just a subset of reviews.
 
@@ -41,52 +41,52 @@ In your page queries, you can query for data like so:
       id
       pagination
       bottomline {
-        total_review
-        average_score
-        total_organic_reviews
-        organic_average_score
-        star_distribution
+        totalReview
+        averageScore
+        totalOrganicReviews
+        organicAverageScore
+        starDistribution
       }
       products {
         id
-        domain_key
+        domainKey
         name
-        social_links
-        embedded_widget_link
-        testimonials_product_link
-        product_link
-        image_url
+        socialLinks
+        embeddedWidgetLink
+        testimonialsProductLink
+        productLink
+        imageUrl
       }
       reviews {
         id
         score
-        votes_up
-        votes_down
+        votesUp
+        votesDown
         content
         title
-        created_at
-        verified_buyer
+        createdAt
+        verifiedBuyer
         sentiment
-        product_id
-        images_data {
+        productId
+        imagesData {
           id
-          thumb_url
-          original_url
+          thumbUrl
+          originalUrl
         }
         user {
-          user_id
-          social_image
-          user_type
-          is_social_connected
-          display_name
+          userId
+          socialImage
+          userType
+          isSocialConnected
+          displayName
         }
         comment {
           id
           content
-          created_at
+          createdAt
         }
       }
-      product_id
+      productId
     }
   }
 }
