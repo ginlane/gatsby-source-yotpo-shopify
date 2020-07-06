@@ -2,16 +2,18 @@ import chalk from "chalk";
 import camelCaseRecursive from "camelcase-keys-recursive";
 import { createShopifyClient, createYotpoClient } from "./create-client";
 import { getReviews, getShopifyProducts } from "./fetch";
-import { formatMsg, decodeShopifyId } from "./utils";
+import { formatMsg, decodeShopifyId, createNodeFactory } from "./utils";
+import { mockYotpoResponse } from "./mock";
 
 export const sourceNodes = async (
-  { actions: { createNode, touchNode }, createNodeId, createContentDigest },
+  { actions: { createNode }, createNodeId, createContentDigest },
   {
     shopName,
     shopifyAccessToken,
     yotpoAppKey,
     yotpoPerPage = 150,
-    apiVersion = "2019-07"
+    apiVersion = "2019-07",
+    createDefaultObject = false,
   }
 ) => {
   if (!shopName || !shopifyAccessToken || !yotpoAppKey) {
@@ -24,17 +26,17 @@ export const sourceNodes = async (
   const shopifyClient = await createShopifyClient({
     shopName,
     shopifyAccessToken,
-    apiVersion
+    apiVersion,
   });
 
   try {
     console.time(formatMsg("finished fetching shopify products"));
     const shopifyProducts = await getShopifyProducts({
-      shopifyClient
+      shopifyClient,
     });
     console.timeEnd(formatMsg("finished fetching shopify products"));
 
-    const productIds = shopifyProducts.edges.map(product =>
+    const productIds = shopifyProducts.edges.map((product) =>
       decodeShopifyId(product.node.id)
     );
 
@@ -42,28 +44,28 @@ export const sourceNodes = async (
     const reviews = await getReviews({
       productIds,
       yotpoAppKey,
-      yotpoPerPage
+      yotpoPerPage,
     });
     console.timeEnd(formatMsg("finished fetching yotpo reviews"));
 
-    const type = "YotpoProduct";
-
-    await Promise.all(
-      reviews.map(async review => {
-        const camelCaseReview = camelCaseRecursive(review);
-        await createNode({
-          ...camelCaseReview,
-          id: createNodeId(`${type}-${camelCaseReview.productId}`),
-          parent: null,
-          children: [],
-          internal: {
-            type: type,
-            content: JSON.stringify(camelCaseReview),
-            contentDigest: createContentDigest(camelCaseReview)
-          }
-        });
-      })
-    );
+    createDefaultObject
+      ? await createNodeFactory(
+          createNode,
+          createNodeId,
+          createContentDigest,
+          mockYotpoResponse
+        )
+      : await Promise.all(
+          reviews.map(async (review) => {
+            const camelCaseReview = camelCaseRecursive(review);
+            await createNodeFactory(
+              createNode,
+              createNodeId,
+              createContentDigest,
+              camelCaseReview
+            );
+          })
+        );
   } catch (e) {
     console.error(chalk`\n{red error} an error occurred while sourcing data`);
     throw e;
