@@ -11,7 +11,7 @@ export const sourceNodes = async (
     shopName,
     shopifyAccessToken,
     yotpoAppKey,
-    yotpoPerPage = 150,
+    yotpoPerPage = 149,
     apiVersion = "2019-07",
     createDefaultObject = false,
   }
