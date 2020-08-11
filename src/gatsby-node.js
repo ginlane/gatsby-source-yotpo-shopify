@@ -29,6 +29,16 @@ export const sourceNodes = async (
     apiVersion,
   });
 
+  if (createDefaultObject) {
+    await createNodeFactory(
+      createNode,
+      createNodeId,
+      createContentDigest,
+      mockYotpoResponse
+    );
+    console.log("created mock object");
+    return;
+  }
   try {
     console.time(formatMsg("finished fetching shopify products"));
     const shopifyProducts = await getShopifyProducts({
@@ -48,24 +58,17 @@ export const sourceNodes = async (
     });
     console.timeEnd(formatMsg("finished fetching yotpo reviews"));
 
-    createDefaultObject
-      ? await createNodeFactory(
+    await Promise.all(
+      reviews.map(async (review) => {
+        const camelCaseReview = camelCaseRecursive(review);
+        await createNodeFactory(
           createNode,
           createNodeId,
           createContentDigest,
-          mockYotpoResponse
-        )
-      : await Promise.all(
-          reviews.map(async (review) => {
-            const camelCaseReview = camelCaseRecursive(review);
-            await createNodeFactory(
-              createNode,
-              createNodeId,
-              createContentDigest,
-              camelCaseReview
-            );
-          })
+          camelCaseReview
         );
+      })
+    );
   } catch (e) {
     console.error(chalk`\n{red error} an error occurred while sourcing data`);
     throw e;
