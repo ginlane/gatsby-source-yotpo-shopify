@@ -16,7 +16,7 @@ export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
   const reviews = await Promise.all(
     productIds.map(async id => {
       const review = await makeYotpoRequest(yotpoAppKey, yotpoPerPage, id)
-        .catch(error => {
+        .catch(async (error) => {
           if (error.response.status === 400) {
             return await makeYotpoRequest(yotpoAppKey, yotpoPerPage, id)
           }
