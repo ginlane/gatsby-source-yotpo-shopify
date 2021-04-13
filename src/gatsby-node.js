@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import camelCaseRecursive from "camelcase-keys-recursive";
 import { createShopifyClient, createYotpoClient } from "./create-client";
-import { getReviews, getShopifyProducts } from "./fetch";
+import { getReviews, getQuestions, getShopifyProducts } from "./fetch";
 import { formatMsg, decodeShopifyId, createNodeFactory } from "./utils";
 import { mockYotpoResponse } from "./mock";
 
@@ -58,14 +58,34 @@ export const sourceNodes = async (
     });
     console.timeEnd(formatMsg("finished fetching yotpo reviews"));
 
+    console.time(formatMsg("finished fetching yotpo questions"));
+    const questions = await getQuestions({
+      productIds,
+      yotpoAppKey,
+      yotpoPerPage,
+    });
+    console.timeEnd(formatMsg("finished fetching yotpo questions"));
+
+    let mergedData = reviews.map((review) => {
+      const question = questions.find((question)=> question.productId === review.productId)
+      return {
+        ...review,
+        ...question
+      }
+    })
+    const mergedProductIds = mergedData.map((data) => data.productId)
+
+    const leftoverQuestions = questions.filter((question) => !mergedProductIds.includes(question.productId) )
+    mergedData = mergedData.concat(leftoverQuestions)
+
     await Promise.all(
-      reviews.map(async (review) => {
-        const camelCaseReview = camelCaseRecursive(review);
+      mergedData.map(async (data) => {
+        const camelCaseData = camelCaseRecursive(data);
         await createNodeFactory(
           createNode,
           createNodeId,
           createContentDigest,
-          camelCaseReview
+          camelCaseData
         );
       })
     );
