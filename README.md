@@ -1,6 +1,6 @@
 # gatsby-source-yotpo-shopify
 
-This source plugin allows you to access your Yotpo reviews and ratings through Gatsby's GraphQL queries. It first connects to a shopify storefront API to get all products. It then uses the individual [product review endpoint](https://apidocs.yotpo.com/reference#retrieve-reviews-for-a-specific-product) to query for each review. Finally the `YotpoProduct` Node gets added so it can be queried in gatsby.
+This source plugin allows you to access your Yotpo reviews and ratings, and questions and answers through Gatsby's GraphQL queries. It first connects to a shopify storefront API to get all products. It uses the individual [product review endpoint](https://apidocs.yotpo.com/reference#retrieve-reviews-for-a-product) to query for each review. It then uses the [product Q&A endpoint](https://apidocs.yotpo.com/reference#retrieve-questions-and-answers-for-a-product) to query for each question along with its answers. Finally the `YotpoProduct` Node gets added so it can be queried in gatsby.
 
 This source plugin caters for a specific use case where reviews are set as both `Product` and `Site` inside the yotpo admin. If you use the [all reviews endpoint](https://apidocs.yotpo.com/reference#retrieve-all-reviews) the sku is randomly selected to be either a product sku or `site_review`. This means you can't query for all reviews, just a subset of reviews.
 
@@ -86,7 +86,47 @@ In your page queries, you can query for data like so:
           createdAt
         }
       }
+      questions {
+        id
+        content
+        createdAt
+        userType
+        asker {
+          badges {
+            description
+            id
+            image100
+            image300
+            name
+          }
+          id
+          displayName
+          email
+          isSocialConnected
+          score
+          slug
+          socialImage
+        }
+        sortedPublicAnswers {
+          id
+          content
+          isStoreOwnerComment_
+          votesUp
+          votesDown
+          createdAt
+          answerer {
+            id
+            displayName
+            isSocialConnected
+            score
+            slug
+            socialImage
+          }
+        }
+      }
       productId
+      totalAnswers
+      totalQuestions
     }
   }
 }
@@ -116,6 +156,56 @@ or for individual YotpoProduct reviews
       }
     }
     productId
+  }
+}
+```
+
+or for individual YotpoProduct questions
+
+```graphql
+{
+  yotpoProduct(productId: { eq: $shopifyProductId }) {
+    questions {
+      id
+      content
+      createdAt
+      userType
+      asker {
+        badges {
+          description
+          id
+          image100
+          image300
+          name
+        }
+        id
+        displayName
+        email
+        isSocialConnected
+        score
+        slug
+        socialImage
+      }
+      sortedPublicAnswers {
+        id
+        content
+        isStoreOwnerComment_
+        votesUp
+        votesDown
+        createdAt
+        answerer {
+          id
+          displayName
+          isSocialConnected
+          score
+          slug
+          socialImage
+        }
+      }
+    }
+    productId
+    totalAnswers
+    totalQuestions
   }
 }
 ```

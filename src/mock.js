@@ -67,5 +67,42 @@ export const mockYotpoResponse = {
       },
     },
   ],
+  questions: [
+    {
+      id: 1,
+      content: 'test',
+      createdAt: "2021-04-06T12:15:35.000Z",
+      userType: "User",
+      asker: {
+        id: 1,
+        displayName: "test",
+        email: "user@example.com",
+        isSocialConnected: false,
+        score: 0,
+        slug: "user-12345",
+        socialImage: "test",
+      },
+      sortedPublicAnswers: [
+        {
+          id: 1,
+          content: "test",
+          isStoreOwnerComment_: true,
+          votesDown: 0,
+          votesUp: 0,
+          createdAt: "2021-04-07T23:53:17.000Z",
+          answerer: {
+            id: 1,
+            displayName: "test",
+            isSocialConnected: false,
+            score: 0,
+            slug: "answerer-12345",
+            socialImage: "test",
+          },
+        },
+      ],
+    },
+  ],
   productId: "mock",
+  totalAnswers: 5,
+  totalQuestions: 5,
 };
