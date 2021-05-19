@@ -1,9 +1,4 @@
 export const mockYotpoResponse = {
-  pagination: {
-    page: 1,
-    perPage: 150,
-    total: 1,
-  },
   bottomline: {
     totalReview: 1,
     averageScore: 4.90385,

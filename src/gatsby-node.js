@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import camelCaseRecursive from "camelcase-keys-recursive";
-import { createShopifyClient, createYotpoClient } from "./create-client";
+import { createShopifyClient } from "./create-client";
 import { getReviews, getQuestions, getShopifyProducts } from "./fetch";
 import { formatMsg, decodeShopifyId, createNodeFactory } from "./utils";
 import { mockYotpoResponse } from "./mock";
