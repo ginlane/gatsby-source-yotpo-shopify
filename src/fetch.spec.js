@@ -1,7 +1,149 @@
-import { getReviews } from './fetch'
+import { getReviews, getShopifyProducts } from './fetch'
 import nock from 'nock'
+import dedent from 'dedent'
 
 describe('fetch', () => {
+  describe('.getShopifyProducts', () => {
+    it('gets the products', async () => {
+      const mockShopifyGraphQlClient = {
+        request: jest.fn()
+      }
+
+      const shopifyResponse = {
+        products: {
+          pageInfo: {
+            hasNextPage: false
+          },
+          edges: [
+            {
+              node: {
+                id: "id1",
+              },
+              cursor: "cursor-1"
+            },
+            {
+              node: {
+                id: "id2",
+              },
+              cursor: "cursor-2"
+            },
+          ]
+        }
+      }
+
+      mockShopifyGraphQlClient.request.mockResolvedValue(shopifyResponse)
+
+      const products = await getShopifyProducts({ shopifyClient: mockShopifyGraphQlClient })
+
+      expect(products).toEqual([{ id: 'id1' }, { id: 'id2' }])
+
+      const graphQlQuery = mockShopifyGraphQlClient.request.mock.calls[0][0]
+      expect(dedent(graphQlQuery)).toEqual(dedent(
+        `{
+        products( first: 250) {
+          pageInfo {
+            hasNextPage
+          }
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }`)
+      )
+    })
+
+    it('gets multiple pages of products', async () => {
+      const mockShopifyGraphQlClient = {
+        request: jest.fn()
+      }
+
+      const shopifyFirstPageResponse = {
+        products: {
+          pageInfo: {
+            hasNextPage: true
+          },
+          edges: [
+            {
+              node: {
+                id: "id1",
+              },
+              cursor: "cursor-1"
+            },
+            {
+              node: {
+                id: "id2",
+              },
+              cursor: "cursor-2"
+            },
+          ]
+        }
+      }
+
+      const shopifySecondPageResponse = {
+        products: {
+          pageInfo: {
+            hasNextPage: false
+          },
+          edges: [
+            {
+              node: {
+                id: "id3",
+              },
+              cursor: "cursor-3"
+            },
+            {
+              node: {
+                id: "id4",
+              },
+              cursor: "cursor-4"
+            },
+          ]
+        }
+      }
+
+      mockShopifyGraphQlClient.request.mockResolvedValueOnce(shopifyFirstPageResponse).mockResolvedValueOnce(shopifySecondPageResponse)
+
+      const products = await getShopifyProducts({ shopifyClient: mockShopifyGraphQlClient })
+
+      expect(mockShopifyGraphQlClient.request).toHaveBeenCalledTimes(2)
+      expect(products).toEqual([{ id: 'id1' }, { id: 'id2' }, { id: 'id3' }, { id: 'id4' }])
+
+      const firstGraphQlQuery = mockShopifyGraphQlClient.request.mock.calls[0][0]
+      expect(dedent(firstGraphQlQuery)).toEqual(dedent(
+        `{
+        products( first: 250) {
+          pageInfo {
+            hasNextPage
+          }
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }`)
+      )
+
+      const secondGraphQlQuery = mockShopifyGraphQlClient.request.mock.calls[1][0]
+      expect(dedent(secondGraphQlQuery)).toEqual(dedent(
+        `{
+        products( first: 250, after: "cursor-2") {
+          pageInfo {
+            hasNextPage
+          }
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }`)
+      )
+    })
+  })
+
   describe('.getReviews', () => {
     const yotpoBaseUrl = 'https://api.yotpo.com'
     const yotpoReviewUrl = '/v1/widget/appKey/products/productId/reviews.json'
@@ -75,7 +217,7 @@ describe('fetch', () => {
         }
       }
 
-      const product2Response ={
+      const product2Response = {
         status: {
           code: 200,
           message: 'OK',
@@ -93,7 +235,7 @@ describe('fetch', () => {
           products: [{ productId: 5 }],
           product_tag: [],
           reviews: [{ reviewId: 3 }],
-        } 
+        }
       }
 
       nock(yotpoBaseUrl)

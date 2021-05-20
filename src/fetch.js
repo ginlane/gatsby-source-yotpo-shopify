@@ -1,4 +1,5 @@
 import axios from 'axios'
+const SHOPIFY_PAGE_COUNT = 250
 
 const makeYotpoReviewRequest = async (
   yotpoAppKey,
@@ -71,8 +72,8 @@ export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
   return reviews
 }
 
-const makeYotpoQuestionRequest = async (yotpoAppKey, yotpoPerPage, id) => {
-  return await axios.get(`https://api.yotpo.com/products/${yotpoAppKey}/${id}/questions`)
+const makeYotpoQuestionRequest = async (yotpoAppKey, productId) => {
+  return await axios.get(`https://api.yotpo.com/products/${yotpoAppKey}/${productId}/questions`)
 }
 
 export const getQuestions = async ({
@@ -81,22 +82,45 @@ export const getQuestions = async ({
   yotpoPerPage,
 }) => {
   const questions = await Promise.all(
-    productIds.map(async (id) => {
+    productIds.map(async (productId) => {
       const question = await makeYotpoQuestionRequest(
         yotpoAppKey,
-        yotpoPerPage,
-        id,
+        productId,
       )
 
-      return { ...question.data.response, ...{ productId: id } }
+      return { ...question.data.response, ...{ productId: productId } }
     }),
   )
   return questions
 }
 
 export const getShopifyProducts = async ({ shopifyClient }) => {
-  const shopifyResponse = await shopifyClient.request(`{
-    products(first: 250) {
+  return getAllShopifyProducts(shopifyClient)
+}
+
+const getAllShopifyProducts = async (shopifyClient) => {
+  let shopifyResponse = await makeShopifyProductsRequest(shopifyClient)
+  let edges = shopifyResponse.products.edges
+
+  if (shopifyResponse.products.pageInfo.hasNextPage) {
+    const lastProduct = edges[edges.length -1]
+    shopifyResponse = await makeShopifyProductsRequest(shopifyClient, lastProduct.cursor)
+
+    edges = edges.concat(shopifyResponse.products.edges)
+  }
+
+  return edges.map(e => e.node) 
+}
+
+const makeShopifyProductsRequest = async (shopifyClient, afterCursor) => {
+  const after = afterCursor ? `, after: "${afterCursor}"` : ''
+
+  return await shopifyClient.request(
+    `{
+    products( first: ${SHOPIFY_PAGE_COUNT}${after}) {
+      pageInfo {
+        hasNextPage
+      }
       edges {
         node {
           id
@@ -104,6 +128,4 @@ export const getShopifyProducts = async ({ shopifyClient }) => {
       }
     }
   }`)
-
-  return shopifyResponse.products
 }
