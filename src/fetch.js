@@ -73,7 +73,9 @@ export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
 }
 
 const makeYotpoQuestionRequest = async (yotpoAppKey, productId) => {
-  return await axios.get(`https://api.yotpo.com/products/${yotpoAppKey}/${productId}/questions`)
+  return await axios.get(
+    `https://api.yotpo.com/products/${yotpoAppKey}/${productId}/questions`,
+  )
 }
 
 export const getQuestions = async ({
@@ -83,10 +85,7 @@ export const getQuestions = async ({
 }) => {
   const questions = await Promise.all(
     productIds.map(async (productId) => {
-      const question = await makeYotpoQuestionRequest(
-        yotpoAppKey,
-        productId,
-      )
+      const question = await makeYotpoQuestionRequest(yotpoAppKey, productId)
 
       return { ...question.data.response, ...{ productId: productId } }
     }),
@@ -103,13 +102,16 @@ const getAllShopifyProducts = async (shopifyClient) => {
   let edges = shopifyResponse.products.edges
 
   if (shopifyResponse.products.pageInfo.hasNextPage) {
-    const lastProduct = edges[edges.length -1]
-    shopifyResponse = await makeShopifyProductsRequest(shopifyClient, lastProduct.cursor)
+    const lastProduct = edges[edges.length - 1]
+    shopifyResponse = await makeShopifyProductsRequest(
+      shopifyClient,
+      lastProduct.cursor,
+    )
 
     edges = edges.concat(shopifyResponse.products.edges)
   }
 
-  return edges.map(e => e.node) 
+  return edges.map((e) => e.node)
 }
 
 const makeShopifyProductsRequest = async (shopifyClient, afterCursor) => {
@@ -127,5 +129,6 @@ const makeShopifyProductsRequest = async (shopifyClient, afterCursor) => {
         }
       }
     }
-  }`)
+  }`,
+  )
 }

@@ -6,40 +6,43 @@ describe('fetch', () => {
   describe('.getShopifyProducts', () => {
     it('gets the products', async () => {
       const mockShopifyGraphQlClient = {
-        request: jest.fn()
+        request: jest.fn(),
       }
 
       const shopifyResponse = {
         products: {
           pageInfo: {
-            hasNextPage: false
+            hasNextPage: false,
           },
           edges: [
             {
               node: {
-                id: "id1",
+                id: 'id1',
               },
-              cursor: "cursor-1"
+              cursor: 'cursor-1',
             },
             {
               node: {
-                id: "id2",
+                id: 'id2',
               },
-              cursor: "cursor-2"
+              cursor: 'cursor-2',
             },
-          ]
-        }
+          ],
+        },
       }
 
       mockShopifyGraphQlClient.request.mockResolvedValue(shopifyResponse)
 
-      const products = await getShopifyProducts({ shopifyClient: mockShopifyGraphQlClient })
+      const products = await getShopifyProducts({
+        shopifyClient: mockShopifyGraphQlClient,
+      })
 
       expect(products).toEqual([{ id: 'id1' }, { id: 'id2' }])
 
       const graphQlQuery = mockShopifyGraphQlClient.request.mock.calls[0][0]
-      expect(dedent(graphQlQuery)).toEqual(dedent(
-        `{
+      expect(dedent(graphQlQuery)).toEqual(
+        dedent(
+          `{
         products( first: 250) {
           pageInfo {
             hasNextPage
@@ -50,69 +53,81 @@ describe('fetch', () => {
             }
           }
         }
-      }`)
+      }`,
+        ),
       )
     })
 
     it('gets multiple pages of products', async () => {
       const mockShopifyGraphQlClient = {
-        request: jest.fn()
+        request: jest.fn(),
       }
 
       const shopifyFirstPageResponse = {
         products: {
           pageInfo: {
-            hasNextPage: true
+            hasNextPage: true,
           },
           edges: [
             {
               node: {
-                id: "id1",
+                id: 'id1',
               },
-              cursor: "cursor-1"
+              cursor: 'cursor-1',
             },
             {
               node: {
-                id: "id2",
+                id: 'id2',
               },
-              cursor: "cursor-2"
+              cursor: 'cursor-2',
             },
-          ]
-        }
+          ],
+        },
       }
 
       const shopifySecondPageResponse = {
         products: {
           pageInfo: {
-            hasNextPage: false
+            hasNextPage: false,
           },
           edges: [
             {
               node: {
-                id: "id3",
+                id: 'id3',
               },
-              cursor: "cursor-3"
+              cursor: 'cursor-3',
             },
             {
               node: {
-                id: "id4",
+                id: 'id4',
               },
-              cursor: "cursor-4"
+              cursor: 'cursor-4',
             },
-          ]
-        }
+          ],
+        },
       }
 
-      mockShopifyGraphQlClient.request.mockResolvedValueOnce(shopifyFirstPageResponse).mockResolvedValueOnce(shopifySecondPageResponse)
+      mockShopifyGraphQlClient.request
+        .mockResolvedValueOnce(shopifyFirstPageResponse)
+        .mockResolvedValueOnce(shopifySecondPageResponse)
 
-      const products = await getShopifyProducts({ shopifyClient: mockShopifyGraphQlClient })
+      const products = await getShopifyProducts({
+        shopifyClient: mockShopifyGraphQlClient,
+      })
 
       expect(mockShopifyGraphQlClient.request).toHaveBeenCalledTimes(2)
-      expect(products).toEqual([{ id: 'id1' }, { id: 'id2' }, { id: 'id3' }, { id: 'id4' }])
+      expect(products).toEqual([
+        { id: 'id1' },
+        { id: 'id2' },
+        { id: 'id3' },
+        { id: 'id4' },
+      ])
 
-      const firstGraphQlQuery = mockShopifyGraphQlClient.request.mock.calls[0][0]
-      expect(dedent(firstGraphQlQuery)).toEqual(dedent(
-        `{
+      const firstGraphQlQuery =
+        mockShopifyGraphQlClient.request.mock.calls[0][0]
+      expect(dedent(firstGraphQlQuery)).toEqual(
+        dedent(
+          `{
         products( first: 250) {
           pageInfo {
             hasNextPage
@@ -123,12 +138,15 @@ describe('fetch', () => {
             }
           }
         }
-      }`)
+      }`,
+        ),
       )
 
-      const secondGraphQlQuery = mockShopifyGraphQlClient.request.mock.calls[1][0]
-      expect(dedent(secondGraphQlQuery)).toEqual(dedent(
-        `{
+      const secondGraphQlQuery =
+        mockShopifyGraphQlClient.request.mock.calls[1][0]
+      expect(dedent(secondGraphQlQuery)).toEqual(
+        dedent(
+          `{
         products( first: 250, after: "cursor-2") {
           pageInfo {
             hasNextPage
@@ -139,7 +157,8 @@ describe('fetch', () => {
             }
           }
         }
-      }`)
+      }`,
+        ),
       )
     })
   })
@@ -189,7 +208,7 @@ describe('fetch', () => {
         },
         products: [{ productId: 1 }],
         reviews: [{ reviewId: 1 }],
-        productId: 'productId'
+        productId: 'productId',
       }
 
       expect(reviews).toEqual([expected])
@@ -214,7 +233,7 @@ describe('fetch', () => {
           products: [{ productId: 1 }],
           product_tag: [],
           reviews: [{ reviewId: 1 }],
-        }
+        },
       }
 
       const product2Response = {
@@ -235,7 +254,7 @@ describe('fetch', () => {
           products: [{ productId: 5 }],
           product_tag: [],
           reviews: [{ reviewId: 3 }],
-        }
+        },
       }
 
       nock(yotpoBaseUrl)
@@ -265,7 +284,7 @@ describe('fetch', () => {
         },
         products: [{ productId: 1 }],
         reviews: [{ reviewId: 1 }],
-        productId: 'productId'
+        productId: 'productId',
       }
 
       const expected2 = {
@@ -375,8 +394,15 @@ describe('fetch', () => {
           average_score: 4.81818,
         },
         products: [{ productId: 1 }],
-        reviews: [{ reviewId: 1 }, { reviewId: 2 }, { reviewId: 3 }, { reviewId: 4 }, { reviewId: 5 }, { reviewId: 6 }],
-        productId: 'productId'
+        reviews: [
+          { reviewId: 1 },
+          { reviewId: 2 },
+          { reviewId: 3 },
+          { reviewId: 4 },
+          { reviewId: 5 },
+          { reviewId: 6 },
+        ],
+        productId: 'productId',
       }
 
       expect(reviewResponse).toEqual([expected])
