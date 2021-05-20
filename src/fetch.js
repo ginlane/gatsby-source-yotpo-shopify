@@ -1,47 +1,75 @@
-import axios from "axios";
+import axios from 'axios'
 
-const makeYotpoReviewRequest = async (yotpoAppKey, productId, yotpoPerPage, page) => {
+const makeYotpoReviewRequest = async (
+  yotpoAppKey,
+  productId,
+  yotpoPerPage,
+  page,
+) => {
   return await axios.get(
     `https://api.yotpo.com/v1/widget/${yotpoAppKey}/products/${productId}/reviews.json`,
     {
       params: {
         per_page: yotpoPerPage,
-        page
-      }
-    }
-  );
+        page,
+      },
+    },
+  )
 }
 
-const getProductReviews = async (yotpoAppKey, productId, yotpoPerPage, pageNumber = 1) => {
-  const productReviews = (await makeYotpoReviewRequest(yotpoAppKey, productId, yotpoPerPage, pageNumber)).data.response
+const getProductReviews = async (
+  yotpoAppKey,
+  productId,
+  yotpoPerPage,
+  pageNumber = 1,
+) => {
+  const productReviews = (
+    await makeYotpoReviewRequest(
+      yotpoAppKey,
+      productId,
+      yotpoPerPage,
+      pageNumber,
+    )
+  ).data.response
   const pagination = productReviews.pagination
 
-  if ((pagination.page * pagination.per_page) < pagination.total) {
-    const remainingPages = await getProductReviews(yotpoAppKey, productId, yotpoPerPage, pageNumber + 1)
+  if (pagination.page * pagination.per_page < pagination.total) {
+    const remainingPages = await getProductReviews(
+      yotpoAppKey,
+      productId,
+      yotpoPerPage,
+      pageNumber + 1,
+    )
 
-    productReviews.reviews = productReviews.reviews.concat(remainingPages.reviews)
+    productReviews.reviews = productReviews.reviews.concat(
+      remainingPages.reviews,
+    )
   }
 
   return {
     bottomline: productReviews.bottomline,
     products: productReviews.products,
     reviews: productReviews.reviews,
-  };
+  }
 }
 
 export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
   const reviews = await Promise.all(
-    productIds.map(async productId => {
-      const productReviews = await getProductReviews(yotpoAppKey, productId, yotpoPerPage)
+    productIds.map(async (productId) => {
+      const productReviews = await getProductReviews(
+        yotpoAppKey,
+        productId,
+        yotpoPerPage,
+      )
 
       return {
-        ...productReviews
-        , productId: productId
-      };
-    })
-  );
-  return reviews;
-};
+        ...productReviews,
+        productId: productId,
+      }
+    }),
+  )
+  return reviews
+}
 
 const makeYotpoQuestionRequest = async (yotpoAppKey, yotpoPerPage, id) => {
   return await axios.get(
@@ -49,22 +77,30 @@ const makeYotpoQuestionRequest = async (yotpoAppKey, yotpoPerPage, id) => {
     {
       params: {
         count: yotpoPerPage,
-        page: 1
-      }
-    }
-  );
+        page: 1,
+      },
+    },
+  )
 }
 
-export const getQuestions = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
+export const getQuestions = async ({
+  productIds,
+  yotpoAppKey,
+  yotpoPerPage,
+}) => {
   const questions = await Promise.all(
-    productIds.map(async id => {
-      const question = await makeYotpoQuestionRequest(yotpoAppKey, yotpoPerPage, id)
+    productIds.map(async (id) => {
+      const question = await makeYotpoQuestionRequest(
+        yotpoAppKey,
+        yotpoPerPage,
+        id,
+      )
 
-      return { ...question.data.response, ...{ productId: id } };
-    })
-  );
-  return questions;
-};
+      return { ...question.data.response, ...{ productId: id } }
+    }),
+  )
+  return questions
+}
 
 export const getShopifyProducts = async ({ shopifyClient }) => {
   const shopifyResponse = await shopifyClient.request(`{
@@ -75,7 +111,7 @@ export const getShopifyProducts = async ({ shopifyClient }) => {
         }
       }
     }
-  }`);
+  }`)
 
-  return shopifyResponse.products;
-};
+  return shopifyResponse.products
+}
