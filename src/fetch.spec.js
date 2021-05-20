@@ -21,7 +21,7 @@ describe('fetch', () => {
         })
         .reply(200, mockYotpoReviewResponse)
 
-      const reviews = await getReviews({productIds: ['productId'], yotpoAppKey: 'appKey', yotpoPerPage: 100})
+      const reviews = await getReviews({ productIds: ['productId'], yotpoAppKey: 'appKey', yotpoPerPage: 100 })
 
       const expected = {
         products: mockYotpoReviewResponse.response.products,
@@ -33,33 +33,67 @@ describe('fetch', () => {
       expect(reviews).toEqual([expected])
     })
 
+    it('gets reviews for multiple products', async () => {
+      nock(yotpoBaseUrl)
+        .get(yotpoReviewUrl)
+        .query({
+          per_page: 100,
+          page: 1
+        })
+        .reply(200, mockYotpoReviewResponse)
+        .get('/v1/widget/appKey/products/otherProduct/reviews.json')
+        .query({
+          per_page: 100,
+          page: 1
+        })
+        .reply(200, mockYotpoReviewResponse)
+
+      const reviews = await getReviews({ productIds: ['productId', 'otherProduct'], yotpoAppKey: 'appKey', yotpoPerPage: 100 })
+
+      const expected1 = {
+        products: mockYotpoReviewResponse.response.products,
+        reviews: mockYotpoReviewResponse.response.reviews,
+        bottomline: mockYotpoReviewResponse.response.bottomline,
+        productId: 'productId'
+      }
+
+      const expected2 = {
+        products: mockYotpoReviewResponse.response.products,
+        reviews: mockYotpoReviewResponse.response.reviews,
+        bottomline: mockYotpoReviewResponse.response.bottomline,
+        productId: 'otherProduct'
+      }
+
+      expect(reviews).toEqual([expected1, expected2])
+    })
+
     it('concatenates reviews from multiple pages', async () => {
       const firstPageResponse = deepClone(mockYotpoReviewResponse)
       const secondPageResponse = deepClone(mockYotpoReviewResponse)
       const thirdPageResponse = deepClone(mockYotpoReviewResponse)
-      const expectedReviews = [{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}]
+      const expectedReviews = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }]
 
       firstPageResponse.response.pagination = {
-        "page": 1,
-        "per_page": 2,
-        "total": 6
+        page: 1,
+        per_page: 2,
+        total: 6
       }
 
-      firstPageResponse.response.reviews = [ {id: 1}, {id: 2} ]
+      firstPageResponse.response.reviews = [{ id: 1 }, { id: 2 }]
 
       secondPageResponse.response.pagination = {
-        "page": 2,
-        "per_page": 2,
-        "total": 6
+        page: 2,
+        per_page: 2,
+        total: 6
       }
-      secondPageResponse.response.reviews = [ {id: 3}, {id: 4} ]
+      secondPageResponse.response.reviews = [{ id: 3 }, { id: 4 }]
 
       thirdPageResponse.response.pagination = {
-        "page": 3,
-        "per_page": 2,
-        "total": 6
+        page: 3,
+        per_page: 2,
+        total: 6
       }
-      thirdPageResponse.response.reviews = [ {id: 5}, {id: 6} ]
+      thirdPageResponse.response.reviews = [{ id: 5 }, { id: 6 }]
 
       nock(yotpoBaseUrl)
         .get(yotpoReviewUrl)
@@ -68,24 +102,20 @@ describe('fetch', () => {
           page: 1
         })
         .reply(200, firstPageResponse)
+        .get(yotpoReviewUrl)
+        .query({
+          per_page: 2,
+          page: 2
+        })
+        .reply(200, secondPageResponse)
+        .get(yotpoReviewUrl)
+        .query({
+          per_page: 2,
+          page: 3
+        })
+        .reply(200, thirdPageResponse)
 
-      nock(yotpoBaseUrl)
-      .get(yotpoReviewUrl)
-      .query({
-        per_page: 2,
-        page: 2
-      })
-      .reply(200, secondPageResponse)
-
-      nock(yotpoBaseUrl)
-      .get(yotpoReviewUrl)
-      .query({
-        per_page: 2,
-        page: 3
-      })
-      .reply(200, thirdPageResponse)
-
-      const reviewResponse = await getReviews({productIds: ['productId'], yotpoAppKey: 'appKey', yotpoPerPage: 2})
+      const reviewResponse = await getReviews({ productIds: ['productId'], yotpoAppKey: 'appKey', yotpoPerPage: 2 })
 
       const expected = {
         products: mockYotpoReviewResponse.response.products,
