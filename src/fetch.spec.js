@@ -47,10 +47,13 @@ describe('fetch', () => {
       })
 
       const expected = {
-        products: mockYotpoReviewResponse.response.products,
-        reviews: mockYotpoReviewResponse.response.reviews,
-        bottomline: mockYotpoReviewResponse.response.bottomline,
-        productId: 'productId',
+        bottomline: {
+          total_review: 11,
+          average_score: 4.81818,
+        },
+        products: [{ productId: 1 }],
+        reviews: [{ reviewId: 1 }],
+        productId: 'productId'
       }
 
       expect(reviews).toEqual([expected])
