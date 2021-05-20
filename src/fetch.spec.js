@@ -1,11 +1,5 @@
 import { getReviews } from './fetch'
 import nock from 'nock'
-import { mockYotpoReviewResponse } from '../testData'
-import v8 from 'v8'
-
-const deepClone = (obj) => {
-  return v8.deserialize(v8.serialize(obj))
-}
 
 describe('fetch', () => {
   describe('.getReviews', () => {
@@ -60,19 +54,61 @@ describe('fetch', () => {
     })
 
     it('gets reviews for multiple products', async () => {
+      const product1Response = {
+        status: {
+          code: 200,
+          message: 'OK',
+        },
+        response: {
+          pagination: {
+            page: 1,
+            per_page: 10,
+            total: 9,
+          },
+          bottomline: {
+            total_review: 11,
+            average_score: 4.81818,
+          },
+          products: [{ productId: 1 }],
+          product_tag: [],
+          reviews: [{ reviewId: 1 }],
+        }
+      }
+
+      const product2Response ={
+        status: {
+          code: 200,
+          message: 'OK',
+        },
+        response: {
+          pagination: {
+            page: 1,
+            per_page: 10,
+            total: 9,
+          },
+          bottomline: {
+            total_review: 1,
+            average_score: 5,
+          },
+          products: [{ productId: 5 }],
+          product_tag: [],
+          reviews: [{ reviewId: 3 }],
+        } 
+      }
+
       nock(yotpoBaseUrl)
         .get(yotpoReviewUrl)
         .query({
           per_page: 100,
           page: 1,
         })
-        .reply(200, mockYotpoReviewResponse)
+        .reply(200, product1Response)
         .get('/v1/widget/appKey/products/otherProduct/reviews.json')
         .query({
           per_page: 100,
           page: 1,
         })
-        .reply(200, mockYotpoReviewResponse)
+        .reply(200, product2Response)
 
       const reviews = await getReviews({
         productIds: ['productId', 'otherProduct'],
@@ -81,16 +117,22 @@ describe('fetch', () => {
       })
 
       const expected1 = {
-        products: mockYotpoReviewResponse.response.products,
-        reviews: mockYotpoReviewResponse.response.reviews,
-        bottomline: mockYotpoReviewResponse.response.bottomline,
-        productId: 'productId',
+        bottomline: {
+          total_review: 11,
+          average_score: 4.81818,
+        },
+        products: [{ productId: 1 }],
+        reviews: [{ reviewId: 1 }],
+        productId: 'productId'
       }
 
       const expected2 = {
-        products: mockYotpoReviewResponse.response.products,
-        reviews: mockYotpoReviewResponse.response.reviews,
-        bottomline: mockYotpoReviewResponse.response.bottomline,
+        bottomline: {
+          total_review: 1,
+          average_score: 5,
+        },
+        products: [{ productId: 5 }],
+        reviews: [{ reviewId: 3 }],
         productId: 'otherProduct',
       }
 
@@ -98,39 +140,66 @@ describe('fetch', () => {
     })
 
     it('concatenates reviews from multiple pages', async () => {
-      const firstPageResponse = deepClone(mockYotpoReviewResponse)
-      const secondPageResponse = deepClone(mockYotpoReviewResponse)
-      const thirdPageResponse = deepClone(mockYotpoReviewResponse)
-      const expectedReviews = [
-        { id: 1 },
-        { id: 2 },
-        { id: 3 },
-        { id: 4 },
-        { id: 5 },
-        { id: 6 },
-      ]
-
-      firstPageResponse.response.pagination = {
-        page: 1,
-        per_page: 2,
-        total: 6,
+      const firstPageResponse = {
+        status: {
+          code: 200,
+          message: 'OK',
+        },
+        response: {
+          pagination: {
+            page: 1,
+            per_page: 2,
+            total: 6,
+          },
+          bottomline: {
+            total_review: 11,
+            average_score: 4.81818,
+          },
+          products: [{ productId: 1 }],
+          product_tag: [],
+          reviews: [{ reviewId: 1 }, { reviewId: 2 }],
+        },
       }
-
-      firstPageResponse.response.reviews = [{ id: 1 }, { id: 2 }]
-
-      secondPageResponse.response.pagination = {
-        page: 2,
-        per_page: 2,
-        total: 6,
+      const secondPageResponse = {
+        status: {
+          code: 200,
+          message: 'OK',
+        },
+        response: {
+          pagination: {
+            page: 2,
+            per_page: 2,
+            total: 6,
+          },
+          bottomline: {
+            total_review: 11,
+            average_score: 4.81818,
+          },
+          products: [{ productId: 1 }],
+          product_tag: [],
+          reviews: [{ reviewId: 3 }, { reviewId: 4 }],
+        },
       }
-      secondPageResponse.response.reviews = [{ id: 3 }, { id: 4 }]
-
-      thirdPageResponse.response.pagination = {
-        page: 3,
-        per_page: 2,
-        total: 6,
+      const thirdPageResponse = {
+        status: {
+          code: 200,
+          message: 'OK',
+        },
+        response: {
+          pagination: {
+            page: 3,
+            per_page: 2,
+            total: 6,
+          },
+          bottomline: {
+            total_review: 11,
+            average_score: 4.81818,
+          },
+          products: [{ productId: 1 }],
+          product_tag: [],
+          reviews: [{ reviewId: 5 }, { reviewId: 6 }],
+        },
       }
-      thirdPageResponse.response.reviews = [{ id: 5 }, { id: 6 }]
 
       nock(yotpoBaseUrl)
         .get(yotpoReviewUrl)
@@ -159,10 +228,13 @@ describe('fetch', () => {
       })
 
       const expected = {
-        products: mockYotpoReviewResponse.response.products,
-        reviews: expectedReviews,
-        bottomline: mockYotpoReviewResponse.response.bottomline,
-        productId: 'productId',
+        bottomline: {
+          total_review: 11,
+          average_score: 4.81818,
+        },
+        products: [{ productId: 1 }],
+        reviews: [{ reviewId: 1 }, { reviewId: 2 }, { reviewId: 3 }, { reviewId: 4 }, { reviewId: 5 }, { reviewId: 6 }],
+        productId: 'productId'
       }
 
       expect(reviewResponse).toEqual([expected])
