@@ -1,6 +1,6 @@
 {
   "name": "gatsby-source-yotpo-shopify",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Source plugin for yotpo with shopify products",
   "main": "index.js",
   "scripts": {
