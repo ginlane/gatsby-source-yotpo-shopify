@@ -72,9 +72,19 @@ export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
   return reviews
 }
 
-const makeYotpoQuestionRequest = async (yotpoAppKey, productId) => {
+const makeYotpoQuestionRequest = async (
+  yotpoAppKey,
+  productId,
+  yotpoPerPage,
+) => {
   return await axios.get(
     `https://api.yotpo.com/products/${yotpoAppKey}/${productId}/questions`,
+    {
+      params: {
+        count: yotpoPerPage,
+        page: 1,
+      },
+    },
   )
 }
 
@@ -85,9 +95,16 @@ export const getQuestions = async ({
 }) => {
   const questions = await Promise.all(
     productIds.map(async (productId) => {
-      const question = await makeYotpoQuestionRequest(yotpoAppKey, productId)
+      const questionResponse = (
+        await makeYotpoQuestionRequest(yotpoAppKey, productId, yotpoPerPage)
+      ).data.response
 
-      return { ...question.data.response, ...{ productId: productId } }
+      return {
+        questions: questionResponse.questions,
+        total_questions: questionResponse.total_questions,
+        total_answers: questionResponse.total_answers,
+        productId: productId,
+      }
     }),
   )
   return questions
