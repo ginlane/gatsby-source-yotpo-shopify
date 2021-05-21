@@ -40,7 +40,7 @@ export const sourceNodes = async (
     return
   }
   try {
-    console.time(formatMsg('started fetching shopify products'))
+    console.time(formatMsg('finished fetching shopify products'))
     const shopifyProducts = await getShopifyProducts({
       shopifyClient,
     })
@@ -50,7 +50,7 @@ export const sourceNodes = async (
       decodeShopifyId(product.id),
     )
 
-    console.time(formatMsg('started fetching yotpo reviews'))
+    console.time(formatMsg('finished fetching yotpo reviews'))
     const reviews = await getReviews({
       productIds,
       yotpoAppKey,
@@ -58,7 +58,7 @@ export const sourceNodes = async (
     })
     console.timeEnd(formatMsg('finished fetching yotpo reviews'))
 
-    console.time(formatMsg('started fetching yotpo questions'))
+    console.time(formatMsg('finished fetching yotpo questions'))
     const questions = await getQuestions({
       productIds,
       yotpoAppKey,
