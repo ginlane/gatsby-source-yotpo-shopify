@@ -1,19 +1,19 @@
-import { GraphQLClient } from "graphql-request";
+import { GraphQLClient } from 'graphql-request'
 
 export const createShopifyClient = ({
   shopName,
   shopifyAccessToken,
-  apiVersion
+  apiVersion,
 }) => {
-  let url;
+  let url
   if (shopName.includes(`.`)) {
-    url = `https://${shopName}/api/${apiVersion}/graphql.json`;
+    url = `https://${shopName}/api/${apiVersion}/graphql.json`
   } else {
-    url = `https://${shopName}.myshopify.com/api/${apiVersion}/graphql.json`;
+    url = `https://${shopName}.myshopify.com/api/${apiVersion}/graphql.json`
   }
   return new GraphQLClient(url, {
     headers: {
-      "X-Shopify-Storefront-Access-Token": shopifyAccessToken
-    }
-  });
-};
+      'X-Shopify-Storefront-Access-Token': shopifyAccessToken,
+    },
+  })
+}

@@ -1,69 +1,134 @@
-import axios from "axios";
+import axios from 'axios'
+const SHOPIFY_PAGE_COUNT = 250
 
-const makeYotpoReviewRequest = async (yotpoAppKey, yotpoPerPage, id) => {
+const makeYotpoReviewRequest = async (
+  yotpoAppKey,
+  productId,
+  yotpoPerPage,
+  page,
+) => {
   return await axios.get(
-    `https://api.yotpo.com/v1/widget/${yotpoAppKey}/products/${id}/reviews.json`,
+    `https://api.yotpo.com/v1/widget/${yotpoAppKey}/products/${productId}/reviews.json`,
     {
       params: {
         per_page: yotpoPerPage,
-        page: 1
-      }
-    }
-  );
+        page,
+      },
+    },
+  )
+}
+
+const getProductReviews = async (
+  yotpoAppKey,
+  productId,
+  yotpoPerPage,
+  pageNumber = 1,
+) => {
+  const productReviews = (
+    await makeYotpoReviewRequest(
+      yotpoAppKey,
+      productId,
+      yotpoPerPage,
+      pageNumber,
+    )
+  ).data.response
+  const pagination = productReviews.pagination
+
+  if (pagination.page * pagination.per_page < pagination.total) {
+    const remainingPages = await getProductReviews(
+      yotpoAppKey,
+      productId,
+      yotpoPerPage,
+      pageNumber + 1,
+    )
+
+    productReviews.reviews = productReviews.reviews.concat(
+      remainingPages.reviews,
+    )
+  }
+
+  return {
+    bottomline: productReviews.bottomline,
+    products: productReviews.products,
+    reviews: productReviews.reviews,
+  }
 }
 
 export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
   const reviews = await Promise.all(
-    productIds.map(async id => {
-      const review = await makeYotpoReviewRequest(yotpoAppKey, yotpoPerPage, id)
-        .catch(async (error) => {
-          if (error.response.status === 400) {
-            return await makeYotpoReviewRequest(yotpoAppKey, yotpoPerPage, id)
-          }
-        })
-      return { ...review.data.response, ...{ productId: id } };
-    })
-  );
-  return reviews;
-};
+    productIds.map(async (productId) => {
+      const productReviews = await getProductReviews(
+        yotpoAppKey,
+        productId,
+        yotpoPerPage,
+      )
 
-const makeYotpoQuestionRequest = async(yotpoAppKey, yotpoPerPage, id) => {
-  return await axios.get(
-    `https://api.yotpo.com/products/${yotpoAppKey}/${id}/questions`,
-    {
-      params: {
-        count: yotpoPerPage,
-        page: 1
+      return {
+        ...productReviews,
+        productId: productId,
       }
-    }
-  );
+    }),
+  )
+  return reviews
 }
 
-export const getQuestions = async({ productIds, yotpoAppKey, yotpoPerPage }) => {
+const makeYotpoQuestionRequest = async (yotpoAppKey, productId) => {
+  return await axios.get(
+    `https://api.yotpo.com/products/${yotpoAppKey}/${productId}/questions`,
+  )
+}
+
+export const getQuestions = async ({
+  productIds,
+  yotpoAppKey,
+  yotpoPerPage,
+}) => {
   const questions = await Promise.all(
-    productIds.map(async id => {
-      const question = await makeYotpoQuestionRequest(yotpoAppKey, yotpoPerPage, id)
-        .catch(async (error) => {
-          if (error.response.status === 400) {
-            return await makeYotpoQuestionRequest(yotpoAppKey, yotpoPerPage, id)
-          }
-        })
-      return { ...question.data.response, ...{ productId: id } };
-    })
-  );
-  return questions;
-};
+    productIds.map(async (productId) => {
+      const question = await makeYotpoQuestionRequest(yotpoAppKey, productId)
+
+      return { ...question.data.response, ...{ productId: productId } }
+    }),
+  )
+  return questions
+}
 
 export const getShopifyProducts = async ({ shopifyClient }) => {
-  const shopifyResponse = await shopifyClient.request(`{
-    products(first: 250) {
+  return getAllShopifyProducts(shopifyClient)
+}
+
+const getAllShopifyProducts = async (shopifyClient) => {
+  let shopifyResponse = await makeShopifyProductsRequest(shopifyClient)
+  let edges = shopifyResponse.products.edges
+
+  if (shopifyResponse.products.pageInfo.hasNextPage) {
+    const lastProduct = edges[edges.length - 1]
+    shopifyResponse = await makeShopifyProductsRequest(
+      shopifyClient,
+      lastProduct.cursor,
+    )
+
+    edges = edges.concat(shopifyResponse.products.edges)
+  }
+
+  return edges.map((e) => e.node)
+}
+
+const makeShopifyProductsRequest = async (shopifyClient, afterCursor) => {
+  const after = afterCursor ? `, after: "${afterCursor}"` : ''
+
+  return await shopifyClient.request(
+    `{
+    products( first: ${SHOPIFY_PAGE_COUNT}${after}) {
+      pageInfo {
+        hasNextPage
+      }
       edges {
         node {
           id
         }
       }
     }
-  }`);
-
-  return shopifyResponse.products;
-};
+  }`,
+  )
+}
