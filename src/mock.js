@@ -44,8 +44,8 @@ export const mockYotpoResponse = {
       imagesData: [
         {
           id: 1,
-          thumbUrl: 'test',
-          originalUrl: 'test',
+          thumbUrl: 'https://via.placeholder.com/75.png?text=Review+image+thumb',
+          originalUrl: 'https://via.placeholder.com/400.png?text=Review+image+original',
         },
       ],
       user: {
