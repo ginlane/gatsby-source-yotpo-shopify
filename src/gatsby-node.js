@@ -14,6 +14,7 @@ export const sourceNodes = async (
     yotpoPerPage = 149,
     apiVersion = '2019-07',
     createDefaultObject = false,
+    appendDefaultObject = false,
   },
 ) => {
   if (!shopName || !shopifyAccessToken || !yotpoAppKey) {
@@ -57,6 +58,16 @@ export const sourceNodes = async (
       yotpoPerPage,
     })
     console.timeEnd(formatMsg('finished fetching yotpo reviews'))
+
+    if (appendDefaultObject) {
+      reviews.push({
+        productId: mockYotpoResponse.productId,
+        bottomLine: mockYotpoResponse.bottomline,
+        reviews: mockYotpoResponse.reviews,
+        products: mockYotpoResponse.products
+      })
+      console.log('appended mock reviews')
+    }
 
     console.time(formatMsg('finished fetching yotpo questions'))
     const questions = await getQuestions({
