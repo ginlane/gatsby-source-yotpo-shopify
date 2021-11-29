@@ -30,6 +30,15 @@ The storefront token should have the following permissions:
   ]
 ```
 
+## Local Dev
+
+In order to test changes to the package, you’ll need to setup a link between this repo and your app. It’s simple:
+
+- Run `yarn build && yarn link` in this the root of this repo
+- Copy the output and paste it into the root of your app’s repo
+
+NOTE: Any changes you make here will require a `yarn build` in order to be reflected in your app.
+
 ## Querying for Data
 
 In your page queries, you can query for data like so:

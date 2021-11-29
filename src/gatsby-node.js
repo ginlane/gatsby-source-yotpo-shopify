@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import camelCaseRecursive from 'camelcase-keys-recursive'
-import { createShopifyClient } from './create-client'
 import { getReviews, getQuestions, getShopifyProducts } from './fetch'
 import { formatMsg, decodeShopifyId, createNodeFactory } from './utils'
 import { mockYotpoResponse } from './mock'
@@ -9,7 +8,7 @@ export const sourceNodes = async (
   { actions: { createNode }, createNodeId, createContentDigest },
   {
     shopName,
-    shopifyAccessToken,
+    shopifyAccessToken: token,
     yotpoAppKey,
     yotpoPerPage = 149,
     apiVersion = '2019-07',
@@ -17,18 +16,12 @@ export const sourceNodes = async (
     appendDefaultObject = false,
   },
 ) => {
-  if (!shopName || !shopifyAccessToken || !yotpoAppKey) {
+  if (!shopName || !token || !yotpoAppKey) {
     console.log(
       '\nMissing configurations - shopName, shopifyAccessToken and yotpoAppKey are required',
     )
     process.exit(1)
   }
-
-  const shopifyClient = await createShopifyClient({
-    shopName,
-    shopifyAccessToken,
-    apiVersion,
-  })
 
   if (createDefaultObject) {
     await createNodeFactory(
@@ -42,9 +35,7 @@ export const sourceNodes = async (
   }
   try {
     console.time(formatMsg('finished fetching shopify products'))
-    const shopifyProducts = await getShopifyProducts({
-      shopifyClient,
-    })
+    const shopifyProducts = await getShopifyProducts(shopName, token)
     console.timeEnd(formatMsg('finished fetching shopify products'))
 
     const productIds = shopifyProducts.map((product) =>
@@ -64,7 +55,7 @@ export const sourceNodes = async (
         productId: mockYotpoResponse.productId,
         bottomLine: mockYotpoResponse.bottomline,
         reviews: mockYotpoResponse.reviews,
-        products: mockYotpoResponse.products
+        products: mockYotpoResponse.products,
       })
       console.log('appended mock reviews')
     }

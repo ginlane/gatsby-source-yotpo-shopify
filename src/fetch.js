@@ -110,42 +110,46 @@ export const getQuestions = async ({
   return questions
 }
 
-export const getShopifyProducts = async ({ shopifyClient }) => {
-  return getAllShopifyProducts(shopifyClient)
-}
+export const getShopifyProducts = async (shopName, token) => {
+  let response = await makeShopifyProductsRequest(shopName, token)
+  let edges = response.products.edges
 
-const getAllShopifyProducts = async (shopifyClient) => {
-  let shopifyResponse = await makeShopifyProductsRequest(shopifyClient)
-  let edges = shopifyResponse.products.edges
-
-  if (shopifyResponse.products.pageInfo.hasNextPage) {
+  if (response.products.pageInfo.hasNextPage) {
     const lastProduct = edges[edges.length - 1]
-    shopifyResponse = await makeShopifyProductsRequest(
-      shopifyClient,
+    response = await makeShopifyProductsRequest(
+      shopName,
+      token,
       lastProduct.cursor,
     )
-
-    edges = edges.concat(shopifyResponse.products.edges)
+    edges = edges.concat(response.products.edges)
   }
 
   return edges.map((e) => e.node)
 }
 
-const makeShopifyProductsRequest = async (shopifyClient, afterCursor) => {
+const makeShopifyProductsRequest = async (shopName, token, afterCursor) => {
   const after = afterCursor ? `, after: "${afterCursor}"` : ''
-
-  return await shopifyClient.request(
-    `{
-    products( first: ${SHOPIFY_PAGE_COUNT}${after}) {
-      pageInfo {
-        hasNextPage
-      }
-      edges {
-        node {
-          id
+  const results = await axios.post(
+    `https://${shopName}.myshopify.com/api/2019-07/graphql.json`,
+    {
+      query: `{
+        products( first: ${SHOPIFY_PAGE_COUNT}${after}) {
+          pageInfo {
+            hasNextPage
+          }
+          edges {
+            node {
+              id
+            }
+          }
         }
-      }
-    }
-  }`,
+      }`,
+    },
+    {
+      headers: {
+        'X-Shopify-Storefront-Access-Token': token,
+      },
+    },
   )
+  return results.data.data
 }
