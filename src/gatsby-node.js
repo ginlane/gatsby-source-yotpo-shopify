@@ -4,7 +4,7 @@ import { getReviews, getQuestions, getShopifyProducts } from './fetch'
 import { formatMsg, decodeShopifyId, createNodeFactory } from './utils'
 import { mockYotpoResponse } from './mock'
 
-export const sourceNodes = async (
+export const createSchemaCustomization = async (
   { actions: { createNode }, createNodeId, createContentDigest },
   {
     shopName,
