@@ -164,7 +164,7 @@ describe('fetch', () => {
   })
 
   describe('.getReviews', () => {
-    const yotpoBaseUrl = 'https://api.yotpo.com'
+    const yotpoBaseUrl = 'https://api-cdn.yotpo.com'
     const yotpoReviewUrl = '/v1/widget/appKey/products/productId/reviews.json'
 
     it('gets reviews from Yotpo', async () => {

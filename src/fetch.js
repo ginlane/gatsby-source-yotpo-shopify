@@ -8,7 +8,7 @@ const makeYotpoReviewRequest = async (
   page,
 ) => {
   return await axios.get(
-    `https://api.yotpo.com/v1/widget/${yotpoAppKey}/products/${productId}/reviews.json`,
+    `https://api-cdn.yotpo.com/v1/widget/${yotpoAppKey}/products/${productId}/reviews.json`,
     {
       params: {
         per_page: yotpoPerPage,
@@ -55,21 +55,26 @@ const getProductReviews = async (
 }
 
 export const getReviews = async ({ productIds, yotpoAppKey, yotpoPerPage }) => {
-  const reviews = await Promise.all(
-    productIds.map(async (productId) => {
-      const productReviews = await getProductReviews(
-        yotpoAppKey,
-        productId,
-        yotpoPerPage,
-      )
+  let reviews
+  try {
+    reviews = await Promise.all(
+      productIds.map(async (productId) => {
+        const productReviews = await getProductReviews(
+          yotpoAppKey,
+          productId,
+          yotpoPerPage,
+        )
 
-      return {
-        ...productReviews,
-        productId: productId,
-      }
-    }),
-  )
-  return reviews
+        return {
+          ...productReviews,
+          productId: productId,
+        }
+      }),
+    )
+    return reviews
+  } catch (e) {
+    console.log(`Error fetching Yotpo reviews: ${e.message}`)
+  }
 }
 
 const makeYotpoQuestionRequest = async (

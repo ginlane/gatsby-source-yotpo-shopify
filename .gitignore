@@ -67,3 +67,12 @@ yarn-error.log
 .pnp.js
 # Yarn Integrity file
 .yarn-integrity
+
+# dist files
+fetch.js
+fetch.spec.js
+gatsby-browser.js
+gatsby-node.js
+gatsby-ssr.js
+mock.js
+utils.js
