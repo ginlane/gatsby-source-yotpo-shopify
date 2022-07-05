@@ -143,6 +143,7 @@ const makeShopifyProductsRequest = async (shopName, token, afterCursor) => {
             hasNextPage
           }
           edges {
+            cursor
             node {
               id
             }
