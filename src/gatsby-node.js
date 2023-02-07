@@ -41,13 +41,15 @@ export const createSchemaCustomization = async (
     const productIds = shopifyProducts.map((product) =>
       decodeShopifyId(product.id),
     )
-
     console.time(formatMsg('finished fetching yotpo reviews'))
-    const reviews = await getReviews({
-      productIds,
-      yotpoAppKey,
-      yotpoPerPage,
-    })
+
+    const reviews =
+      (await getReviews({
+        productIds,
+        yotpoAppKey,
+        yotpoPerPage,
+      })) || []
+
     console.timeEnd(formatMsg('finished fetching yotpo reviews'))
 
     if (appendDefaultObject) {
@@ -60,32 +62,8 @@ export const createSchemaCustomization = async (
       console.log('appended mock reviews')
     }
 
-    console.time(formatMsg('finished fetching yotpo questions'))
-    const questions = await getQuestions({
-      productIds,
-      yotpoAppKey,
-      yotpoPerPage,
-    })
-    console.timeEnd(formatMsg('finished fetching yotpo questions'))
-
-    let mergedData = reviews.map((review) => {
-      const question = questions.find(
-        (question) => question.productId === review.productId,
-      )
-      return {
-        ...review,
-        ...question,
-      }
-    })
-    const mergedProductIds = mergedData.map((data) => data.productId)
-
-    const leftoverQuestions = questions.filter(
-      (question) => !mergedProductIds.includes(question.productId),
-    )
-    mergedData = mergedData.concat(leftoverQuestions)
-
     await Promise.all(
-      mergedData.map(async (data) => {
+      reviews.map(async (data) => {
         const camelCaseData = camelCaseRecursive(data)
         await createNodeFactory(
           createNode,
